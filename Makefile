@@ -1,5 +1,5 @@
 NAME = pipex
-CFILES = 
+CFILES = main.c
 O_DIR = objdir
 OFILES = $(addprefix $(O_DIR)/,$(CFILES:.c=.o))
 
@@ -13,25 +13,32 @@ all: $(LIBFT) $(NAME)
 
 $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR)
+	@echo "\033[33m** libft archive created **\033[0m"
 
 $(NAME): $(OFILES)
 	cc $(FLAGS) $(OFILES) $(LIBFT) -o $(NAME)
+	@echo "\033[33m** Program created **\033[0m"
 
 $(O_DIR):
 	mkdir -p $@
 
 $(O_DIR)/%.o: %.c $(HEADER) | $(O_DIR)
-	cc $(FLAGS) -c $< -o $@
+	cc $(FLAGS) -c $< -o $@ -I$(LIBFT_DIR)
 
 clean:
 	rm -rf $(O_DIR)
-	$(MAKE) fclean -C $(LIBFT_DIR)
+	$(MAKE) clean -C $(LIBFT_DIR)
+	@echo "\033[33m** Object files and libft object files deleted **\033[0m"
 
 fclean: clean
 	rm -f $(NAME)
+	$(MAKE) fclean -C $(LIBFT_DIR)
+	@echo "\033[33m** Program and libft archive deleted **\033[0m"
 
 re: fclean all
 
-.SILENT:
+.SECONDARY: $(OFILES)
 
 .PHONY: all clean fclean re
+
+.SILENT:

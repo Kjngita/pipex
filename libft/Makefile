@@ -67,6 +67,8 @@ re: fclean all
 bonus: $(OFILES) $(BONUS_OFILES)
 	ar -rcs $(NAME) $^
 
-.SILENT:
+.SECONDARY: $(OFILES) $(BONUS_OFILES)
 
-.PHONY: clean fclean all re bonus
+.PHONY: all clean fclean re bonus
+
+.SILENT:
