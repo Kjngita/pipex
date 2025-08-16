@@ -15,15 +15,16 @@
 
 #include "libft.h"
 #include <fcntl.h>
+#include <stdio.h>
 
-typedef struct s_pipex
+typedef struct s_straw
 {
-	char	*infile;
 	char	*cmd1;
 	char	*cmd2;
-	char	*outfile;
+	int		infile_fd;
+	int		outfile_fd;
 	int		pipe_fd[2];
-}	t_pipex;
+}	t_straw;
 
 
 #endif
