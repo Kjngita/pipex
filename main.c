@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/08/14 23:09:36 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/16 22:16:52 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,48 +37,93 @@ void	close_free_n_exit(char *msg, t_straw *pipex, int err_code)
 	exit(err_code);
 }
 
-void	open_infile_n_redirect(t_straw *pipe, char *filename)
-{
-	pipe->infile_fd = open(filename, O_RDONLY);
-	if (pipe->infile_fd < 0)
-	{
-		perror("Opening infile failed\n");
-		close_free_n_exit(NULL, pipe, EXIT_FAILURE);
-	}
-	if (dup2(pipe->infile_fd, STDIN_FILENO) == -1)
-	{
-		perror("Redirecting infile-read failed\n");
-		close_free_n_exit(NULL, pipe, EXIT_FAILURE);
-	}
-	close(pipe->infile_fd);
-	if (dup2(pipe->pipe_fd[1], STDOUT_FILENO) == -1)
-	{
-		perror("Redirecting pipe-write failed\n");
-		close_free_n_exit(NULL, pipe, EXIT_FAILURE);
-	}
-	close(pipe->pipe_fd[0]);
-}
-	// if (position == 4)
-	// {
-	// 	pipe->outfile_fd = open(filename, O_WRONLY | O_CREAT, 0644);
-	// 	if (pipe->outfile_fd < 0)
-	// 	{
-	// 		perror("Outfile failed\n");
-	// 		close_free_n_exit(NULL, pipe, EXIT_FAILURE);
-	// 	}
-	// }
-
 int	main(int ac, char **av, char **envp)
 {
-	t_straw	pipex;
+	t_straw	ppx;
 
 	if (ac != 5)
 		close_free_n_exit("Correct syntax to run: ./pipex file1 cmd1 cmd2 file2\n",
-			&pipex, EXIT_FAILURE);
-	if (pipe(pipex.pipe_fd) == -1)
-		close_free_n_exit("Pipe failed\n", &pipex, EXIT_FAILURE);
-	pipex.cmd1 = av[2];
-	pipex.cmd2 = av[3];
-	open_infile_n_redirect(&pipex, av[1]);
-	// open_files_n_redirect(&pipex, av[4]);
+			&ppx, EXIT_FAILURE);
+	if (pipe(ppx.pipe_fd) == -1)
+		close_free_n_exit("Pipe failed\n", &ppx, EXIT_FAILURE);
+	ppx.cmd1 = av[2];
+	ppx.cmd2 = av[3];
+	make_children(&ppx, av[1], av[4], envp);
+
+	close(ppx.pipe_fd[0]);
+	close(ppx.pipe_fd[1]);
+	
 }
+
+void	make_children(t_straw *ppx, char *infile_name, char *outfile_name, char **envp)
+{
+	pid_t	child_1;
+	pid_t	child_2;
+
+	child_1 = fork();
+	child_2 = fork();
+	if (child_1 == -1 || child_2 == -1)
+	{
+		perror("Child stillbirth\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	if (child_1 == 0)
+	{
+		open_infile_n_redirect(ppx, infile_name);
+		//obey_command(int child, envp);
+	}
+	if (child_2 == 0)
+	{
+		create_outfile_n_redirect(ppx, outfile_name);
+		//obey_command
+	}
+	
+	
+}	
+
+void	open_infile_n_redirect(t_straw *ppx, char *filename)
+{
+	close(ppx->pipe_fd[0]);
+	ppx->infile_fd = open(filename, O_RDONLY);
+	if (ppx->infile_fd < 0)
+	{
+		perror("Opening infile failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	if (dup2(ppx->infile_fd, STDIN_FILENO) == -1)
+	{
+		perror("Redirecting infile->cmdread failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	close(ppx->infile_fd);
+	if (dup2(ppx->pipe_fd[1], STDOUT_FILENO) == -1)
+	{
+		perror("Redirecting cmdwrite->pipe failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	close(ppx->pipe_fd[1]);
+}
+
+void	create_outfile_n_redirect(t_straw *ppx, char *filename)
+{
+	close(ppx->pipe_fd[1]);
+	ppx->outfile_fd = open(filename, O_WRONLY | O_CREAT, 0644);
+	if (ppx->outfile_fd < 0)
+	{
+		perror("Outfile failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	if (dup2(ppx->pipe_fd[0], STDIN_FILENO) == -1)
+	{
+		perror("Redirecting pipe->cmdread failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	close(ppx->pipe_fd[0]);
+	if (dup2(ppx->outfile_fd, STDOUT_FILENO) == -1)
+	{
+		perror("Redirecting cmdwrite->outfile failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
+	close(ppx->outfile_fd);
+}
+
