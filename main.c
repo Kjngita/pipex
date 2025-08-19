@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/08/16 22:16:52 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/19 17:52:09 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,20 +42,23 @@ int	main(int ac, char **av, char **envp)
 	t_straw	ppx;
 
 	if (ac != 5)
-		close_free_n_exit("Correct syntax to run: ./pipex file1 cmd1 cmd2 file2\n",
+		close_free_n_exit("Correct usage: ./pipex file1 cmd1 cmd2 file2\n",
 			&ppx, EXIT_FAILURE);
 	if (pipe(ppx.pipe_fd) == -1)
-		close_free_n_exit("Pipe failed\n", &ppx, EXIT_FAILURE);
+	{
+		perror("Pipe failed\n");
+		close_free_n_exit(NULL, &ppx, EXIT_FAILURE);
+	}
 	ppx.cmd1 = av[2];
 	ppx.cmd2 = av[3];
 	make_children(&ppx, av[1], av[4], envp);
 
 	close(ppx.pipe_fd[0]);
 	close(ppx.pipe_fd[1]);
-	
+
 }
 
-void	make_children(t_straw *ppx, char *infile_name, char *outfile_name, char **envp)
+void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 {
 	pid_t	child_1;
 	pid_t	child_2;
@@ -69,12 +72,12 @@ void	make_children(t_straw *ppx, char *infile_name, char *outfile_name, char **e
 	}
 	if (child_1 == 0)
 	{
-		open_infile_n_redirect(ppx, infile_name);
-		//obey_command(int child, envp);
+		open_infile_n_redirect(ppx, in_name);
+		//obey_command(ppx, ppx->cmd1, evp);
 	}
 	if (child_2 == 0)
 	{
-		create_outfile_n_redirect(ppx, outfile_name);
+		create_outfile_n_redirect(ppx, out_name);
 		//obey_command
 	}
 	
@@ -126,4 +129,3 @@ void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 	}
 	close(ppx->outfile_fd);
 }
-
