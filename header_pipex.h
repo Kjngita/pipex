@@ -24,6 +24,8 @@ typedef struct s_straw
 	int		infile_fd;
 	int		outfile_fd;
 	int		pipe_fd[2];
+	pid_t	child_1;
+	pid_t	child_2;
 }	t_straw;
 
 void	close_free_n_exit(char *msg, t_straw *pipex, int err_code);
