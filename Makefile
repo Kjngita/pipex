@@ -1,5 +1,5 @@
 NAME = pipex
-CFILES = main.c
+CFILES = main.c command.c cleanup.c
 O_DIR = objdir
 OFILES = $(addprefix $(O_DIR)/,$(CFILES:.c=.o))
 
