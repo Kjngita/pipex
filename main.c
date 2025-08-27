@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/08/26 23:20:12 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/27 22:22:07 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,10 @@ int	main(int ac, char **av, char **envp)
 
 }
 
+/**
+Fork 2 child processes, open files and redirect accordingly, each child process
+handles their own command
+ **/
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 {
 	ppx->child_1 = fork();
@@ -59,8 +63,15 @@ void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 		create_outfile_n_redirect(ppx, out_name);
 		obey_command(ppx, ppx->cmd2, envp);
 	}
-}	
+}
 
+/**
+- Close pipe_read since pipe doesn't need to read itself
+- Open infile, redirect infile as the stdin of command 
+- Close infile since command stdin got the info
+- Redirect stdout of command to pipe_write (write to pipe)
+- Close pipe_write, let command do the work
+ **/
 void	open_infile_n_redirect(t_straw *ppx, char *filename)
 {
 	close(ppx->pipe_fd[0]);
@@ -87,20 +98,27 @@ void	open_infile_n_redirect(t_straw *ppx, char *filename)
 	close(ppx->pipe_fd[1]);
 }
 
+/**
+- Close pipe_write since pipe doesn't need to write anywhere
+- Redirect pipe_read as the stdin of command
+- Close pipe_read since command stdin got the info
+- Open/Create outfile, redirect stdout of command to outfile (write to outfile)
+- Close outfile, let command do the work
+ **/
 void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 {
 	close(ppx->pipe_fd[1]);
+	if (dup2(ppx->pipe_fd[0], STDIN_FILENO) == -1)
+	{
+		ft_putstr_fd("pipex: ", STDERR_FILENO);
+		perror("Redirecting pipe->cmdread failed\n");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
 	ppx->outfile_fd = open(filename, O_WRONLY | O_CREAT, 0644);
 	if (ppx->outfile_fd < 0)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Outfile failed\n");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
-	}
-	if (dup2(ppx->pipe_fd[0], STDIN_FILENO) == -1)
-	{
-		ft_putstr_fd("pipex: ", STDERR_FILENO);
-		perror("Redirecting pipe->cmdread failed\n");
 		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->pipe_fd[0]);

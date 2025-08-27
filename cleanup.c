@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 19:22:29 by gita              #+#    #+#             */
-/*   Updated: 2025/08/26 23:28:09 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/27 22:57:53 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,10 @@ void	close_free_n_exit(char *msg, t_straw *pipex, int err_code)
 }
 
 /**
-Free each element in the string array, then free the pointer to that group
+Free each element in the string array, free the double pointer itself,
+then return NULL
  **/
-void	free_arr(char **arr)
+char	*free_arr(char **arr)
 {
 	size_t	i;
 
@@ -65,5 +66,13 @@ void	free_arr(char **arr)
 		}
 		arr = clean_wipe(arr);
 	}
+	return (NULL);
 }
 
+/**
+Check why execve failed, free everything and exit accordingly
+ **/
+void	child_process_fail(t_straw *ppx)
+{
+	
+}

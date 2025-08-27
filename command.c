@@ -6,37 +6,50 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 16:26:13 by gita              #+#    #+#             */
-/*   Updated: 2025/08/26 23:16:20 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/27 22:57:06 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header_pipex.h"
 
+/**
+Split the given command, find the full path to the command, run execve with
+full path, splitted command args and environment
+If execve has error, 
+ **/
 void	obey_command(t_straw *ppx, char *cmd, char **env)
 {
-	char	**command_chunks;
+	char	**cmdv;
 	char	*command_address;
 
 	if (!cmd || !*cmd)
 		close_free_n_exit("Command not found\n", ppx, 127);
 	if (!env)
 		close_free_n_exit("No environment\n", ppx, EXIT_FAILURE);
-	command_chunks = ft_split(cmd, ' ');
-	if (!command_chunks || !command_chunks[0])
+	cmdv = ft_split(cmd, ' ');
+	if (!cmdv || !cmdv[0])
 	{
-		free_arr(command_chunks);
+		free_arr(cmdv);
 		close_free_n_exit("Split failed\n", ppx, EXIT_FAILURE);
 	}
-	command_address = locate_cmd(command_chunks[0], env);
+	command_address = locate_cmd(cmdv[0], env);
 	if (!command_address)
 	{
-		free_arr(command_chunks);
+		free_arr(cmdv);
 		close_free_n_exit("Command not found\n", ppx, 127);
 	}
-	execve(command_address, command_chunks, env);
-	
+	execve(command_address, cmdv, env);
+	cmdv = free_arr(cmdv);
+	command_address = clean_wipe (command_address);
+	//child_process_fails(ppx, )
 }
 
+/**
+- If command (without flags) has a "/", return that command if it's executable, 
+NULL if not
+- Find the PATH line in environment, return the path with the directory that
+has the command (can be NULL)
+ **/
 char	*locate_cmd(char *cmd_main, char **env)
 {
 	char	*cmd_path;
@@ -50,20 +63,27 @@ char	*locate_cmd(char *cmd_main, char **env)
 		else if (access(cmd_main, X_OK) == 0)
 			return (cmd_main);
 	}
-	i = 0;
-	while (env[i])
+	else
 	{
-		if (ft_strncmp("PATH=", env[i], 5) == 0)
+		i = 0;
+		while (env[i])
 		{
-			bunch_of_paths = env[i] + 5;
-			break ;
+			if (ft_strncmp("PATH=", env[i], 5) == 0)
+			{
+				bunch_of_paths = env[i] + 5;
+				break ;
+			}
+			i++;
 		}
-		i++;
 	}
-	cmd_path = correct_path(bunch_of_paths, cmd_main);
-	return (cmd_path);
+	return (correct_path(bunch_of_paths, cmd_main));
 }
 
+/**
+Split the long environment PATH line into different directories separated
+by ":", try pairing the directories with the command then return the path
+that works (can be NULL)
+ **/
 char	*correct_path(char *paths_in_1_line, char *cmd)
 {
 	char	**env_paths;
@@ -77,23 +97,35 @@ char	*correct_path(char *paths_in_1_line, char *cmd)
 	while (env_paths[i])
 	{
 		working_path = match_making(env_paths[i], cmd);
+		if (working_path != NULL)
+			break ;
 		i++;
 	}
-	
+	env_paths = free_arr(env_paths);
+	return (working_path);
 }
 
+/**
+Adding a "/" to the end of directory name, then adding the command to the end
+Return the command with the whole path if it's an executable file, NULL if not
+ **/
 char	*match_making(char *dir, char *cmd)
 {
 	char	*full_path;
-	char	*test;
+	char	*whole_cmd;
 
 	full_path = ft_strjoin(dir, '/');
 	if (!full_path)
 		return (NULL);
-	test = ft_strjoin(full_path, cmd);
-	if (!test)
+	whole_cmd = ft_strjoin(full_path, cmd);
+	full_path = clean_wipe(full_path);
+	if (!whole_cmd)
+		return (NULL);
+	if (access(whole_cmd, X_OK) == -1)
 	{
-		free (full_path);
-		
+		whole_cmd = clean_wipe(whole_cmd);
+		return (NULL);
 	}
+	else if (access(whole_cmd, X_OK) == 0)
+		return (whole_cmd);
 }
