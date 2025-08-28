@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 16:26:13 by gita              #+#    #+#             */
-/*   Updated: 2025/08/27 22:57:06 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/28 15:21:47 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 /**
 Split the given command, find the full path to the command, run execve with
 full path, splitted command args and environment
-If execve has error, 
+If execve has error, pass errno (global variable which gets a value when some
+system function fails) to helper function to exit with correct exit code
  **/
 void	obey_command(t_straw *ppx, char *cmd, char **env)
 {
@@ -29,19 +30,14 @@ void	obey_command(t_straw *ppx, char *cmd, char **env)
 	cmdv = ft_split(cmd, ' ');
 	if (!cmdv || !cmdv[0])
 	{
-		free_arr(cmdv);
+		cmdv = free_arr(cmdv);
 		close_free_n_exit("Split failed\n", ppx, EXIT_FAILURE);
 	}
 	command_address = locate_cmd(cmdv[0], env);
-	if (!command_address)
-	{
-		free_arr(cmdv);
-		close_free_n_exit("Command not found\n", ppx, 127);
-	}
 	execve(command_address, cmdv, env);
 	cmdv = free_arr(cmdv);
 	command_address = clean_wipe (command_address);
-	//child_process_fails(ppx, )
+	child_process_fail(errno, ppx);
 }
 
 /**

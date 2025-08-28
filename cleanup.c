@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 19:22:29 by gita              #+#    #+#             */
-/*   Updated: 2025/08/27 22:57:53 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/28 15:33:53 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ char	*clean_wipe(void *trash)
 }
 
 /**
-Write message to STDERR, close any fd > -1, free commands in struct,
+Write message to STDERR, close any fd > -1, free commands in struct, 
 then exit with error code
  **/
 void	close_free_n_exit(char *msg, t_straw *pipex, int err_code)
@@ -72,7 +72,24 @@ char	*free_arr(char **arr)
 /**
 Check why execve failed, free everything and exit accordingly
  **/
-void	child_process_fail(t_straw *ppx)
+void	child_process_fail(int error_code, t_straw *ppx)
 {
-	
+	if (error_code == ENOENT)
+	{
+		ft_putstr_fd("pipex: ", STDERR_FILENO);
+		perror("Command not found");
+		close_free_n_exit(NULL, ppx, 127);
+	}
+	else if (error_code == EACCES || error_code == ENOEXEC)
+	{
+		ft_putstr_fd("pipex: ", STDERR_FILENO);
+		perror("Could not execute file");
+		close_free_n_exit(NULL, ppx, 126);
+	}
+	else
+	{
+		ft_putstr_fd("pipex: ", STDERR_FILENO);
+		perror("execve");
+		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+	}
 }

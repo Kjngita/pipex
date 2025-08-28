@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:57:10 by gita              #+#    #+#             */
-/*   Updated: 2025/08/27 22:58:40 by gita             ###   ########.fr       */
+/*   Updated: 2025/08/28 15:25:13 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "libft.h"
 #include <fcntl.h>
 #include <stdio.h>
+#include <errno.h>
 
 typedef struct s_straw
 {
@@ -31,7 +32,7 @@ typedef struct s_straw
 char	*clean_wipe(void *trash);
 void	close_free_n_exit(char *msg, t_straw *pipex, int err_code);
 char	*free_arr(char **arr);
-void	child_process_fail(t_straw *ppx);
+void	child_process_fail(int error_code, t_straw *ppx);
 
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp);
 void	open_infile_n_redirect(t_straw *ppx, char *filename);
