@@ -6,15 +6,22 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/08/28 15:30:39 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/02 15:53:19 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header_pipex.h"
 
+/*
+- Check argument count
+- Create a pipe, spawn 2 child processes with helper function, then close pipe
+- Wait for child 1 to finish, wait for child 2 to finish and get child 2's exit status
+- If child 2 exited normally, return the exit code. If not, return exit failure to parent
+ */
 int	main(int ac, char **av, char **envp)
 {
 	t_straw	ppx;
+	int		exit_status;
 
 	if (ac != 5)
 		close_free_n_exit("Correct usage: ./pipex file1 cmd1 cmd2 file2\n",
@@ -30,13 +37,17 @@ int	main(int ac, char **av, char **envp)
 	make_children(&ppx, av[1], av[4], envp);
 	close(ppx.pipe_fd[0]);
 	close(ppx.pipe_fd[1]);
-
+	waitpid(ppx.child_1, &exit_status, 0);
+	waitpid(ppx.child_2, &exit_status, 0);
+	if (WIFEXITED(exit_status))
+		return (WEXITSTATUS(exit_status));
+	return (EXIT_FAILURE);
 }
 
-/**
+/*
 Fork 2 child processes, open files and redirect accordingly, each child process
 handles their own command
- **/
+ */
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 {
 	ppx->child_1 = fork();
@@ -65,13 +76,13 @@ void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 	}
 }
 
-/**
+/*
 - Close pipe_read since pipe doesn't need to read itself
 - Open infile, redirect infile as the stdin of command 
 - Close infile since command stdin got the info
 - Redirect stdout of command to pipe_write (write to pipe)
 - Close pipe_write, let command do the work
- **/
+ */
 void	open_infile_n_redirect(t_straw *ppx, char *filename)
 {
 	close(ppx->pipe_fd[0]);
@@ -98,13 +109,13 @@ void	open_infile_n_redirect(t_straw *ppx, char *filename)
 	close(ppx->pipe_fd[1]);
 }
 
-/**
+/*
 - Close pipe_write since pipe doesn't need to write anywhere
 - Redirect pipe_read as the stdin of command
 - Close pipe_read since command stdin got the info
 - Open/Create outfile, redirect stdout of command to outfile (write to outfile)
 - Close outfile, let command do the work
- **/
+ */
 void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 {
 	close(ppx->pipe_fd[1]);
@@ -130,3 +141,4 @@ void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 	}
 	close(ppx->outfile_fd);
 }
+

@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:57:10 by gita              #+#    #+#             */
-/*   Updated: 2025/08/28 15:25:13 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/02 15:25:50 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 typedef struct s_straw
 {
