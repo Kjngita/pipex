@@ -6,18 +6,18 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:57:10 by gita              #+#    #+#             */
-/*   Updated: 2025/09/02 15:25:50 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/02 21:42:55 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HEADER_PIPEX_H
 # define HEADER_PIPEX_H
 
-#include "libft.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <errno.h>
-#include <sys/wait.h>
+# include "libft.h"
+# include <fcntl.h>
+# include <stdio.h>
+# include <errno.h>
+# include <sys/wait.h>
 
 typedef struct s_straw
 {
@@ -30,9 +30,9 @@ typedef struct s_straw
 	pid_t	child_2;
 }	t_straw;
 
-char	*clean_wipe(void *trash);
-void	close_free_n_exit(char *msg, t_straw *pipex, int err_code);
-char	*free_arr(char **arr);
+void	*clean_wipe(void *trash);
+void	close_fds_n_exit(char *msg, t_straw *pipex, int err_code);
+char	**free_arr(char **arr);
 void	child_process_fail(int error_code, t_straw *ppx);
 
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp);

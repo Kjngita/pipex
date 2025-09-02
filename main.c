@@ -6,31 +6,34 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/09/02 15:53:19 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/02 21:50:43 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header_pipex.h"
 
-/*
+/* START OF PROGRAM
 - Check argument count
 - Create a pipe, spawn 2 child processes with helper function, then close pipe
-- Wait for child 1 to finish, wait for child 2 to finish and get child 2's exit status
-- If child 2 exited normally, return the exit code. If not, return exit failure to parent
+- Wait for child 1 to finish, wait for child 2 to finish and get
+child 2's exit status
+- If child 2 exited normally, return the exit code. If not, return exit failure
+to parent
  */
 int	main(int ac, char **av, char **envp)
 {
 	t_straw	ppx;
 	int		exit_status;
 
+	ft_bzero(&ppx, sizeof(ppx));
 	if (ac != 5)
-		close_free_n_exit("Correct usage: ./pipex file1 cmd1 cmd2 file2\n",
+		close_fds_n_exit("Correct usage: ./pipex file1 cmd1 cmd2 file2\n",
 			&ppx, EXIT_FAILURE);
 	if (pipe(ppx.pipe_fd) == -1)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Pipe failed");
-		close_free_n_exit(NULL, &ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, &ppx, EXIT_FAILURE);
 	}
 	ppx.cmd1 = av[2];
 	ppx.cmd2 = av[3];
@@ -46,7 +49,7 @@ int	main(int ac, char **av, char **envp)
 
 /*
 Fork 2 child processes, open files and redirect accordingly, each child process
-handles their own command
+handles its own command
  */
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 {
@@ -55,7 +58,7 @@ void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Forking 1st child unsuccessful");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	if (ppx->child_1 == 0)
 	{
@@ -67,7 +70,7 @@ void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Forking 2nd child unsuccessful");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	if (ppx->child_2 == 0)
 	{
@@ -91,20 +94,20 @@ void	open_infile_n_redirect(t_straw *ppx, char *filename)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Opening infile failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	if (dup2(ppx->infile_fd, STDIN_FILENO) == -1)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Redirecting infile->cmdread failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->infile_fd);
 	if (dup2(ppx->pipe_fd[1], STDOUT_FILENO) == -1)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Redirecting cmdwrite->pipe failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->pipe_fd[1]);
 }
@@ -123,22 +126,21 @@ void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Redirecting pipe->cmdread failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
-	ppx->outfile_fd = open(filename, O_WRONLY | O_CREAT, 0644);
+	ppx->outfile_fd = open(filename, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 	if (ppx->outfile_fd < 0)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Outfile failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->pipe_fd[0]);
 	if (dup2(ppx->outfile_fd, STDOUT_FILENO) == -1)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
 		perror("Redirecting cmdwrite->outfile failed");
-		close_free_n_exit(NULL, ppx, EXIT_FAILURE);
+		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->outfile_fd);
 }
-
