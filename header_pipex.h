@@ -38,6 +38,7 @@ void	child_process_fail(int error_code, t_straw *ppx);
 void	make_children(t_straw *ppx, char *in_name, char *out_name, char **envp);
 void	open_infile_n_redirect(t_straw *ppx, char *filename);
 void	create_outfile_n_redirect(t_straw *ppx, char *filename);
+int		wait_for_kid(t_straw *ppx);
 
 void	obey_command(t_straw *ppx, char *cmd, char **env);
 char	*locate_cmd(char *cmd_main, char **env);

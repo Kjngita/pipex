@@ -13,9 +13,8 @@ all: $(LIBFT) $(NAME)
 
 $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR)
-	@echo "\033[33m** libft archive created **\033[0m"
 
-$(NAME): $(OFILES)
+$(NAME): $(OFILES) $(LIBFT)
 	cc $(FLAGS) $(OFILES) $(LIBFT) -o $(NAME)
 	@echo "\033[33m** Program created **\033[0m"
 
@@ -28,12 +27,12 @@ $(O_DIR)/%.o: %.c $(HEADER) | $(O_DIR)
 clean:
 	rm -rf $(O_DIR)
 	$(MAKE) clean -C $(LIBFT_DIR)
-	@echo "\033[33m** Object files and libft object files deleted **\033[0m"
+	@echo "\033[33m** Object files deleted **\033[0m"
 
 fclean: clean
 	rm -f $(NAME)
 	$(MAKE) fclean -C $(LIBFT_DIR)
-	@echo "\033[33m** Program and libft archive deleted **\033[0m"
+	@echo "\033[33m** Program deleted **\033[0m"
 
 re: fclean all
 

@@ -15,15 +15,11 @@
 /* START OF PROGRAM
 - Check argument count
 - Create a pipe, spawn 2 child processes with helper function, then close pipe
-- Wait for child 1 to finish, wait for child 2 to finish and get
-child 2's exit status
-- If child 2 exited normally, return the exit code. If not, return exit failure
-to parent
+- Return (end program) with exit code from helper function
  */
 int	main(int ac, char **av, char **envp)
 {
 	t_straw	ppx;
-	int		exit_status;
 
 	ft_bzero(&ppx, sizeof(ppx));
 	if (ac != 5)
@@ -40,11 +36,7 @@ int	main(int ac, char **av, char **envp)
 	make_children(&ppx, av[1], av[4], envp);
 	close(ppx.pipe_fd[0]);
 	close(ppx.pipe_fd[1]);
-	waitpid(ppx.child_1, &exit_status, 0);
-	waitpid(ppx.child_2, &exit_status, 0);
-	if (WIFEXITED(exit_status))
-		return (WEXITSTATUS(exit_status));
-	return (EXIT_FAILURE);
+	return (wait_for_kid(&ppx));
 }
 
 /*
@@ -143,4 +135,28 @@ void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 	close(ppx->outfile_fd);
+}
+/* END OF PROGRAM
+- Wait for child 1 to finish
+- Wait for child 2 to finish and get its exit status
+- If child 2 exited normally, return its exit code to parent.
+If not, return EXIT_FAILURE to parent
+*/
+int	wait_for_kid(t_straw *ppx)
+{
+	int		exit_status;
+
+	if (waitpid(ppx->child_1, NULL, 0) == -1)
+	{
+		perror("pipex: waitpid child1 failed");
+		close_fds_n_exit(NULL, ppx, errno);
+	}
+	if (waitpid(ppx->child_2, &exit_status, 0) == -1)
+	{
+		perror("pipex: waitpid child2 failed");
+		close_fds_n_exit(NULL, ppx, errno);
+	}
+	if (WIFEXITED(exit_status))
+		return (WEXITSTATUS(exit_status));
+	return (EXIT_FAILURE);
 }

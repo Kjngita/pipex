@@ -46,6 +46,7 @@ HEADER = libft.h
 
 $(NAME): $(OFILES)
 	ar -rcs $@ $^
+	@echo "\033[35m** libft archive created **\033[0m"
 
 all: $(NAME)
 
@@ -58,9 +59,11 @@ $(O_DIR)/%.o: %.c $(HEADER) | $(O_DIR)
 clean:
 	rm -rf $(O_DIR)
 	rm -f $(BONUS_OFILES)
+	@echo "\033[35m** libft object files deleted **\033[0m"
 
 fclean: clean
 	rm -f $(NAME)
+	@echo "\033[35m** libft archive deleted **\033[0m"
 
 re: fclean all
 
