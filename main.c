@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 21:56:31 by gita              #+#    #+#             */
-/*   Updated: 2025/09/02 21:50:43 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/03 19:27:26 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,6 +136,7 @@ void	create_outfile_n_redirect(t_straw *ppx, char *filename)
 	}
 	close(ppx->outfile_fd);
 }
+
 /* END OF PROGRAM
 - Wait for child 1 to finish
 - Wait for child 2 to finish and get its exit status

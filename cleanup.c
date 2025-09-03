@@ -6,25 +6,14 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/26 19:22:29 by gita              #+#    #+#             */
-/*   Updated: 2025/09/02 21:57:57 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/03 23:34:55 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header_pipex.h"
 
 /*
-Free a pointer then return NULL
- */
-void	*clean_wipe(void *trash)
-{
-	if (trash)
-		free (trash);
-	return (NULL);
-}
-
-/*
-Write message to STDERR, close any fd > -1, free commands in struct, 
-then exit with error code
+Write message if any to STDERR, close any fd > -1, then exit with error code
  */
 void	close_fds_n_exit(char *msg, t_straw *pipex, int err_code)
 {
@@ -42,6 +31,16 @@ void	close_fds_n_exit(char *msg, t_straw *pipex, int err_code)
 	if (pipex->pipe_fd[1] > -1)
 		close(pipex->pipe_fd[1]);
 	exit(err_code);
+}
+
+/*
+Free a pointer then return NULL
+ */
+void	*clean_wipe(void *trash)
+{
+	if (trash)
+		free (trash);
+	return (NULL);
 }
 
 /*

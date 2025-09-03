@@ -6,16 +6,16 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 16:26:13 by gita              #+#    #+#             */
-/*   Updated: 2025/09/02 21:57:31 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/03 23:22:04 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "header_pipex.h"
 
 /*
-Split the given command, find the full path to the command, run execve with
-full path, splitted command args and environment
-If execve has error, pass errno (global variable which gets a value when some
+- Split the given command, find the full path to the command, run execve with
+(full path, splitted command args, environment)
+- If execve has error, pass errno (global variable which gets a value when some
 system function fails) to helper function to exit with correct exit code
  */
 void	obey_command(t_straw *ppx, char *cmd, char **env)
@@ -37,7 +37,8 @@ void	obey_command(t_straw *ppx, char *cmd, char **env)
 	if (!command_address)
 	{
 		cmdv = free_arr(cmdv);
-		close_fds_n_exit("Could not find command\n", ppx, 127);
+		perror("pipex: Command not found");
+		close_fds_n_exit(NULL, ppx, 127);
 	}
 	execve(command_address, cmdv, env);
 	cmdv = free_arr(cmdv);
@@ -46,8 +47,7 @@ void	obey_command(t_straw *ppx, char *cmd, char **env)
 }
 
 /*
-- If command (without flags) has a "/", return that command if it's executable, 
-NULL if not
+- If command (without flags) has a "/", return a duplicate of that command
 - Find the PATH line in environment, return the path with the directory that
 has the command (can be NULL)
  */
@@ -58,11 +58,7 @@ char	*locate_cmd(char *cmd_main, char **env)
 
 	bunch_of_paths = NULL;
 	if (ft_strchr(cmd_main, '/'))
-	{
-		if (access(cmd_main, X_OK) == -1)
-			return (NULL);
-		return (cmd_main);
-	}
+		return (ft_strdup(cmd_main));
 	else
 	{
 		i = 0;
@@ -80,9 +76,9 @@ char	*locate_cmd(char *cmd_main, char **env)
 }
 
 /*
-Split the long environment PATH line into different directories separated
-by ":", try pairing the directories with the command then return the path
-that works (can be NULL)
+- Split the long environment PATH line by ":" into different directories
+- Try pairing the directories with the command
+- Return the path that exists (can be NULL)
  */
 char	*correct_path(char *paths_in_1_line, char *cmd)
 {
@@ -106,8 +102,8 @@ char	*correct_path(char *paths_in_1_line, char *cmd)
 }
 
 /*
-Adding a "/" to the end of directory name, then adding the command to the end
-Return the command with the whole path if it's an executable file, NULL if not
+- Add a "/" to the end of directory name, then add the command to the end
+- Return the command with the whole path if the file exists, NULL if not
  */
 char	*match_making(char *dir, char *cmd)
 {
@@ -121,7 +117,7 @@ char	*match_making(char *dir, char *cmd)
 	full_path = clean_wipe(full_path);
 	if (!whole_cmd)
 		return (NULL);
-	if (access(whole_cmd, X_OK) == -1)
+	if (access(whole_cmd, F_OK) == -1)
 	{
 		whole_cmd = clean_wipe(whole_cmd);
 		return (NULL);
@@ -130,14 +126,14 @@ char	*match_making(char *dir, char *cmd)
 }
 
 /*
-Check why execve failed, free everything and exit accordingly
+Check why execve failed with errno and exit with according exit code
  */
 void	child_process_fail(int error_code, t_straw *ppx)
 {
 	if (error_code == ENOENT)
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
-		perror("Command not found");
+		perror("Command nonexistent");
 		close_fds_n_exit(NULL, ppx, 127);
 	}
 	else if (error_code == EACCES || error_code == ENOEXEC)
@@ -149,7 +145,7 @@ void	child_process_fail(int error_code, t_straw *ppx)
 	else
 	{
 		ft_putstr_fd("pipex: ", STDERR_FILENO);
-		perror("execve");
+		perror("Failed execve");
 		close_fds_n_exit(NULL, ppx, EXIT_FAILURE);
 	}
 }

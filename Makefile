@@ -6,7 +6,7 @@ OFILES = $(addprefix $(O_DIR)/,$(CFILES:.c=.o))
 LIBFT_DIR = libft
 LIBFT = $(LIBFT_DIR)/libft.a
 
-FLAGS = -Wall -Wextra -Werror -g
+FLAGS = -Wall -Wextra -Werror
 HEADER = header_pipex.h
 
 all: $(LIBFT) $(NAME)
