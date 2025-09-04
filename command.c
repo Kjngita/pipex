@@ -6,7 +6,7 @@
 /*   By: gita <gita@student.hive.fi>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 16:26:13 by gita              #+#    #+#             */
-/*   Updated: 2025/09/03 23:22:04 by gita             ###   ########.fr       */
+/*   Updated: 2025/09/04 23:04:41 by gita             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,8 +77,11 @@ char	*locate_cmd(char *cmd_main, char **env)
 
 /*
 - Split the long environment PATH line by ":" into different directories
-- Try pairing the directories with the command
-- Return the path that exists (can be NULL)
+- Try pairing the directories with the command until a path is returned or
+all directories have been tried
+- If path is a valid file but not executable, continue the pairing process.
+If path is an executable file, break from the pairing process
+- Return the path (can be NULL)
  */
 char	*correct_path(char *paths_in_1_line, char *cmd)
 {
@@ -86,15 +89,19 @@ char	*correct_path(char *paths_in_1_line, char *cmd)
 	char	*working_path;
 	size_t	i;
 
+	working_path = NULL;
 	env_paths = ft_split(paths_in_1_line, ':');
 	if (!env_paths || !env_paths[0])
 		return (NULL);
 	i = 0;
 	while (env_paths[i])
 	{
-		working_path = match_making(env_paths[i], cmd);
-		if (working_path != NULL)
-			break ;
+		if (match_making(env_paths[i], cmd) != NULL)
+		{
+			working_path = match_making(env_paths[i], cmd);
+			if (access(working_path, X_OK) == 0)
+				break ;
+		}
 		i++;
 	}
 	env_paths = free_arr(env_paths);
